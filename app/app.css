@@ -1,12 +1,17 @@
 .square {
-    width: 22px;
-    height: 22px;
+    width: 36px;
+    height: 36px;
     border: 1px solid black;
     float: left;
     margin: 1px;
     text-align: center;
-    line-height: 22px;
+    line-height: 18px;
     background-color: antiquewhite;
+    word-break: break-word;
+}
+
+.square.array span {
+    opacity: 0.5;
 }
 
 .row:after {

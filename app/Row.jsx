@@ -2,26 +2,19 @@ import React from 'react';
 import Square from './Square.jsx'
 
 class Row extends React.Component {
+  render() {
+    const squares = []
 
-    renderSquare(i) {
-        return <Square value={this.props.value[i]}/>;
+    for (let i = 0; i < 9; i++) {
+      squares.push(<Square key={i} value={this.props.value[i]}/>)
     }
 
-    render () {
-        return (
-            <div className="row">
-                {this.renderSquare(0)}
-                {this.renderSquare(1)}
-                {this.renderSquare(2)}
-                {this.renderSquare(3)}
-                {this.renderSquare(4)}
-                {this.renderSquare(5)}
-                {this.renderSquare(6)}
-                {this.renderSquare(7)}
-                {this.renderSquare(8)}
-            </div>
-        );
-    }
+    return (
+      <div className="row">
+        {squares}
+      </div>
+    )
+  }
 }
 
 export default Row;

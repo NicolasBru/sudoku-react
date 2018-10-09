@@ -15,7 +15,24 @@ var config = {
             {
                 test: /\.jsx?/,
                 include: APP_DIR,
-                loader: 'babel-loader'
+                use: [
+                    {
+                      loader: 'babel-loader',
+                      options: {
+                        presets: [
+                          [
+                            '@babel/preset-env', {
+                            'targets': {
+                              'browsers': ['ie 10']
+                            },
+                            'loose': true
+                          }
+                          ],
+                          '@babel/preset-react'
+                        ]
+                      }
+                    }
+                  ]
             },
             {
                 test: /\.css$/,
