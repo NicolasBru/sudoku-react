@@ -8,12 +8,12 @@ class Board extends Component {
     squares: [],
     options: config,
     ended: false,
-    blocked: false,
-    unlocked: false
+    blocked: false
   }
 
   prepareSquares() {
-    this.squares = this.prevSquares = this.state.squares.slice()
+    this.prevSquares = this.state.squares.slice()
+    this.squares = this.prevSquares.slice()
     for (const [index, value] of this.squares.entries()) {
       if (value === null) {
         this.squares[index] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -31,22 +31,9 @@ class Board extends Component {
     })
   }
 
-  unblockBoard = () => {
-    this.previousBoard = this.squares = this.state.squares.slice()
-    this.unlockSquare()
-    this.setState({
-      squares: this.squares,
-      blocked: false,
-      unlocked: true
-    })
-  }
-
-  unlockSquare() {
-    const index = this.squares.findIndex(square => square.length === 2)
-    this.squares[index] = this.squares[index][0]
-  }
-
   circleBoard() {
+    this.searchBoardForPairs()
+
     for (const [index, value] of this.squares.entries()) {
       if (typeof value === 'object') {
         this.solveSquare(index)
@@ -57,8 +44,76 @@ class Board extends Component {
       this.setState({blocked: true})
     } else {
       if (!this.stepByStep && this.squares.find(square => typeof square === 'object')) {
-        this.prevSquares = this.squares
+        this.prevSquares = this.squares.slice()
         this.circleBoard()
+      }
+    }
+  }
+
+  searchBoardForPairs() {
+    for (let i = 0; i < 9; i++) {
+      // ROW
+      const rowArray = this.squares.slice(i * 9, i * 9 + 9)
+      this.checkForPairs(rowArray, i, 'row')
+
+      // COLUMN
+      const columnArray = []
+      let columnJ = 0
+      while (columnJ < 9) {
+        const square = this.squares[columnJ * 9 + i]
+        columnArray.push(square)
+        columnJ++
+      }
+      this.checkForPairs(columnArray, i, 'column')
+
+      // REGION
+      const [row, column] = this.getRegion((Math.floor(i / 3) * 27) + ((i % 3) * 3 ))
+      const regionArray = []
+      let regionJ = 0
+
+      while (regionJ < 3) {
+        let k = 0
+        while (k < 3) {
+          const square = this.squares[((column * 3) + k) + ((row * 27) + (regionJ * 9))]
+          regionArray.push(square)
+          k++
+        }
+        regionJ++
+      }
+      this.checkForPairs(regionArray, i, 'region')
+    }
+  }
+
+  checkForPairs(array, i, type) {
+    const func = {
+      row: 'getSquareIndexFromRow',
+      column: 'getSquareIndexFromColumn',
+      region: 'getSquareIndexFromRegion'
+    }
+
+    for (const [index, value] of array.entries()) {
+      if (typeof value === 'object' && value.length === 2) {
+        const arr = array.slice(index + 1)
+        arr.forEach((entrie, index2) => {
+          if (JSON.stringify(value) === JSON.stringify(entrie)) {
+            array.forEach((v, i2) => {
+              if (i2 === index || i2 === index2 + index + 1) {
+                return
+              }
+
+              if (typeof v === 'object' && (v.includes(value[0]) || v.includes(value[1]))) {
+
+                let newVal = v.filter(v2 => v2 !== value[0] && v2 !== value[1])
+
+                if (newVal.length === 1) {
+                  newVal = newVal[0]
+                }
+
+                this.squares[this[func[type]](i, i2)] = newVal
+              }
+            })
+          }
+        })
       }
     }
   }
@@ -85,6 +140,18 @@ class Board extends Component {
       squares[i] = value
     }
     this.squares = squares
+  }
+
+  getSquareIndexFromRow(rowIndex, squareIndex) {
+    return (rowIndex * 9) + squareIndex
+  }
+
+  getSquareIndexFromColumn(columnIndex, squareIndex) {
+    return columnIndex + squareIndex * 9
+  }
+
+  getSquareIndexFromRegion(regionIndex, squareIndex) {
+    return (Math.floor(regionIndex / 3)) * 27 + ((regionIndex % 3) * 3) + (Math.floor(squareIndex / 3)) * 9 + (squareIndex % 3)
   }
 
   checkRow(square, i) {
@@ -287,7 +354,6 @@ class Board extends Component {
                 blocked ? (
                   <Fragment>
                     <p>Blocked !</p>
-                    <button onClick={this.unblockBoard}>Unblock</button>
                   </Fragment>
                 )
                   : ended ? (
